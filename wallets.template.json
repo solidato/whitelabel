@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Alice",
+    "address": "0x...",
+    "status": "board",
+    "tokens": ""
+  },
+  {
+    "name": "Bob",
+    "address": "0x...",
+    "status": "contributor",
+    "tokens": ""
+  },
+  {
+    "name": "Carol",
+    "address": "0x...",
+    "status": "contributor",
+    "tokens": ""
+  }
+]

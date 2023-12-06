@@ -283,6 +283,7 @@ describe("GovernanceToken", () => {
       await expect(governanceToken.wrap(contributor.address, 41))
         .to.emit(governanceToken, "DepositStarted")
         .withArgs(
+          0,
           contributor.address,
           41,
           (await getEVMTimestamp()) + 3600 * 24 * 7
@@ -459,6 +460,15 @@ describe("GovernanceToken", () => {
         await governanceToken.settleTokens(contributor.address);
 
         expect(neokingdomToken.mint).to.not.have.been.called;
+      });
+
+      it("should emit a Settled event", async () => {
+        await governanceToken.wrap(contributor.address, 42);
+        await timeTravel(7);
+
+        await expect(governanceToken.settleTokens(contributor.address))
+          .to.emit(governanceToken, "Settled")
+          .withArgs(1, contributor.address);
       });
     });
   });

@@ -20,10 +20,13 @@ contract GovernanceToken is Initializable, HasRole, GovernanceTokenSnapshot {
     IShareholderRegistry internal _shareholderRegistry;
 
     event DepositStarted(
+        uint256 indexed index,
         address from,
         uint256 amount,
         uint256 settlementTimestamp
     );
+
+    event Settled(uint256 indexed index, address from);
 
     struct DepositedTokens {
         uint256 amount;
@@ -352,10 +355,15 @@ contract GovernanceToken is Initializable, HasRole, GovernanceTokenSnapshot {
         require(amount > 0, "GovernanceToken: attempt to wrap 0 tokens");
 
         uint256 settlementTimestamp = block.timestamp + settlementPeriod;
+        emit DepositStarted(
+            depositedTokens[from].length,
+            from,
+            amount,
+            settlementTimestamp
+        );
         depositedTokens[from].push(
             DepositedTokens(amount, settlementTimestamp)
         );
-        emit DepositStarted(from, amount, settlementTimestamp);
     }
 
     /**
@@ -370,6 +378,7 @@ contract GovernanceToken is Initializable, HasRole, GovernanceTokenSnapshot {
                 if (tokens.amount > 0) {
                     ERC20Upgradeable._mint(from, tokens.amount);
                     tokens.amount = 0;
+                    emit Settled(i, from);
                 } else {
                     break;
                 }

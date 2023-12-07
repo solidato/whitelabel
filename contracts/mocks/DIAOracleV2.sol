@@ -6,7 +6,7 @@
 
 pragma solidity ^0.8.16;
 
-contract DIAOracleV2Mock {
+contract DIAOracleV2 {
     mapping(string => uint256) public values;
     address oracleUpdater;
 

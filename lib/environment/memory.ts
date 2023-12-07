@@ -3,15 +3,15 @@ import { ethers, upgrades } from "hardhat";
 
 import {
   DAORoles,
-  DIAOracleV2Mock,
   GovernanceToken,
+  IDIAOracleV2,
   InternalMarket,
   NeokingdomToken,
   ProxyAdmin,
   RedemptionController,
   ResolutionManager,
   ShareholderRegistry,
-  TokenMock,
+  USDC,
   Voting,
 } from "../../typechain";
 import { Config, NeokingdomDAO } from "../internal/core";
@@ -19,7 +19,7 @@ import { ContractNames, NeokingdomContracts } from "../internal/types";
 
 export class NeokingdomDAOMemory extends NeokingdomDAO {
   contracts: Partial<NeokingdomContracts>;
-  nextStep = 0;
+  nextStep: { [key: string]: number } = {};
 
   constructor(config: Config) {
     super(config);
@@ -38,12 +38,12 @@ export class NeokingdomDAOMemory extends NeokingdomDAO {
     return this.contracts;
   }
 
-  public async setNextStep(n: number) {
-    this.nextStep = n;
+  public async setNextStep(n: number, sequenceName: string) {
+    this.nextStep[sequenceName] = n;
   }
 
-  public async getNextStep() {
-    return this.nextStep;
+  public async getNextStep(sequenceName: string) {
+    return this.nextStep[sequenceName] || 0;
   }
 
   async deploy(contractName: ContractNames, args: any[] = []) {
@@ -88,17 +88,17 @@ export class NeokingdomDAOMemory extends NeokingdomDAO {
       case "ShareholderRegistry":
         this.contracts.shareholderRegistry = contract as ShareholderRegistry;
         break;
-      case "TokenMock":
-        this.contracts.tokenMock = contract as TokenMock;
+      case "USDC":
+        this.contracts.usdc = contract as USDC;
         break;
       case "Voting":
         this.contracts.voting = contract as Voting;
         break;
-      case "ProxyAdmin":
-        this.contracts.proxyAdmin = contract as ProxyAdmin;
+      case "DIAOracleV2":
+        this.contracts.diaOracle = contract as IDIAOracleV2;
         break;
-      case "DIAOracleV2Mock":
-        this.contracts.diaOracleV2Mock = contract as DIAOracleV2Mock;
+      default:
+        throw new Error(`Unknown contract ${contractName}`);
     }
   }
 }

@@ -18,6 +18,7 @@ import { DEPLOY_SEQUENCE, generateDeployContext } from "../lib";
 import { NeokingdomDAOMemory } from "../lib/environment/memory";
 import { ROLES } from "../lib/utils";
 import { getEVMTimestamp, mineEVMBlock, setEVMTimestamp } from "./utils/evm";
+import { setupDAO } from "./utils/setup";
 
 chai.use(solidity);
 chai.use(chaiAsPromised);
@@ -45,11 +46,9 @@ describe("Upgrade", () => {
   before(async () => {
     [deployer, reserve, managingBoard, user1, user2, user3] =
       await ethers.getSigners();
-    const neokingdom = await NeokingdomDAOMemory.initialize({
-      deployer,
-      reserve: reserve.address,
-    });
-    await neokingdom.run(generateDeployContext, DEPLOY_SEQUENCE);
+
+    const neokingdom = await setupDAO(deployer, reserve);
+
     ({ governanceToken, shareholderRegistry, resolutionManager } =
       await neokingdom.loadContracts());
 

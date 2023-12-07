@@ -7,15 +7,16 @@ import * as readline from "readline";
 
 import {
   DAORoles,
-  DIAOracleV2Mock,
+  DIAOracleV2,
   GovernanceToken,
+  IDIAOracleV2,
   InternalMarket,
   NeokingdomToken,
   ProxyAdmin,
   RedemptionController,
   ResolutionManager,
   ShareholderRegistry,
-  TokenMock,
+  USDC,
   Voting,
 } from "../typechain";
 
@@ -213,10 +214,9 @@ export async function loadContracts(
     shareholderRegistry: await _loadContract<ShareholderRegistry>(
       "ShareholderRegistry"
     ),
-    tokenMock: await _loadContract<TokenMock>("TokenMock"),
+    usdc: await _loadContract<USDC>("USDC"),
     voting: await _loadContract<Voting>("Voting"),
-    proxyAdmin: await _loadContract<ProxyAdmin>("ProxyAdmin"),
-    diaOracleV2Mock: await _loadContract<DIAOracleV2Mock>("DIAOracleV2Mock"),
+    diaOracle: await _loadContract<IDIAOracleV2>("DIAOracleV2"),
   };
 }
 

@@ -9,17 +9,15 @@ import { ethers, network } from "hardhat";
 import {
   DAORoles,
   GovernanceToken,
+  IERC20Mintable,
   InternalMarket,
   NeokingdomToken,
   RedemptionController,
   ResolutionManager,
   ShareholderRegistry,
-  TokenMock,
   Voting,
 } from "../typechain";
 
-import { DEPLOY_SEQUENCE, generateDeployContext } from "../lib";
-import { NeokingdomDAOMemory } from "../lib/environment/memory";
 import { ROLES } from "../lib/utils";
 import {
   getEVMTimestamp,
@@ -28,6 +26,7 @@ import {
   timeTravel,
 } from "./utils/evm";
 import { roles } from "./utils/roles";
+import { setupDAO } from "./utils/setup";
 
 chai.use(solidity);
 chai.use(chaiAsPromised);
@@ -56,7 +55,7 @@ describe("Integration", async () => {
   let shareholderRegistry: ShareholderRegistry;
   let internalMarket: InternalMarket;
   let redemptionController: RedemptionController;
-  let tokenMock: TokenMock;
+  let usdc: IERC20Mintable;
   let contributorStatus: string;
   let investorStatus: string;
   let deployer: SignerWithAddress;
@@ -81,12 +80,8 @@ describe("Integration", async () => {
       free2,
       free3,
     ] = await ethers.getSigners();
-    const neokingdom = await NeokingdomDAOMemory.initialize({
-      deployer,
-      reserve: reserve.address,
-    });
 
-    await neokingdom.run(generateDeployContext, DEPLOY_SEQUENCE);
+    const neokingdom = await setupDAO(deployer, reserve);
 
     ({
       daoRoles,
@@ -97,7 +92,7 @@ describe("Integration", async () => {
       resolutionManager,
       internalMarket,
       redemptionController,
-      tokenMock,
+      usdc,
     } = await neokingdom.loadContracts());
 
     const managingBoardStatus =
@@ -122,18 +117,16 @@ describe("Integration", async () => {
     redemptionActivityWindow =
       (await redemptionController.activityWindow()).toNumber() / DAY;
 
-    await tokenMock.mint(reserve.address, e(INITIAL_USDC));
-    await tokenMock
+    await usdc.mint(reserve.address, e(INITIAL_USDC));
+    await usdc
       .connect(reserve)
       .approve(internalMarket.address, e(INITIAL_USDC));
-    await tokenMock.mint(user1.address, e(INITIAL_USDC));
-    await tokenMock.mint(user2.address, e(INITIAL_USDC));
-    await tokenMock.mint(user3.address, e(INITIAL_USDC));
+    await usdc.mint(user1.address, e(INITIAL_USDC));
+    await usdc.mint(user2.address, e(INITIAL_USDC));
+    await usdc.mint(user3.address, e(INITIAL_USDC));
 
     for (let signer of [user1, user2, user3, free1, free2, free3]) {
-      await tokenMock
-        .connect(signer)
-        .approve(internalMarket.address, MaxUint256);
+      await usdc.connect(signer).approve(internalMarket.address, MaxUint256);
       await governanceToken
         .connect(signer)
         .approve(internalMarket.address, MaxUint256);
@@ -152,7 +145,7 @@ describe("Integration", async () => {
   });
 
   describe("integration", async () => {
-    var currentResolution: number;
+    let currentResolution: number;
     beforeEach(async () => {
       currentResolution = 24;
     });
@@ -1071,12 +1064,12 @@ describe("Integration", async () => {
 
       await expect(() =>
         internalMarket.connect(user2).matchOffer(user1.address, e(4))
-      ).to.changeTokenBalances(tokenMock, [user1, user2], [e(4), e(-4)]);
+      ).to.changeTokenBalances(usdc, [user1, user2], [e(4), e(-4)]);
       expect(await governanceToken.balanceOf(user2.address)).equal(e(104));
 
       await expect(() =>
         internalMarket.connect(user3).matchOffer(user1.address, e(2))
-      ).to.changeTokenBalances(tokenMock, [user1, user3], [e(2), e(-2)]);
+      ).to.changeTokenBalances(usdc, [user1, user3], [e(2), e(-2)]);
 
       // Make the tokens redeemable
       await timeTravel(redemptionStartDays, true);
@@ -1099,17 +1092,15 @@ describe("Integration", async () => {
       expect(await governanceToken.balanceOf(user1.address)).equal(
         e(50 - 4 - 2 - 10)
       );
-      expect(await tokenMock.balanceOf(user1.address)).equal(
+      expect(await usdc.balanceOf(user1.address)).equal(
         e(INITIAL_USDC + 4 + 2 + 10)
       );
       expect(await neokingdomToken.balanceOf(reserve.address)).equal(0);
-      expect(await tokenMock.balanceOf(reserve.address)).equal(
-        e(INITIAL_USDC - 10)
-      );
+      expect(await usdc.balanceOf(reserve.address)).equal(e(INITIAL_USDC - 10));
       expect(await governanceToken.balanceOf(internalMarket.address)).equal(
         e(10 - 4 - 2 - 4)
       );
-      expect(await tokenMock.balanceOf(internalMarket.address)).equal(0);
+      expect(await usdc.balanceOf(internalMarket.address)).equal(0);
 
       await expect(internalMarket.connect(user1).redeem(e(4))).revertedWith(
         "Redemption controller: amount exceeds redeemable balance"
@@ -1162,9 +1153,7 @@ describe("Integration", async () => {
 
         // ...but they can only redeem those that were minted directly to them
         await internalMarket.connect(user1).redeem(e(10));
-        expect(await tokenMock.balanceOf(user1.address)).equal(
-          e(INITIAL_USDC + 10)
-        );
+        expect(await usdc.balanceOf(user1.address)).equal(e(INITIAL_USDC + 10));
       });
 
       it("Issue B: Unsettled Deposits Can Be Locked", async () => {
@@ -1221,9 +1210,9 @@ describe("Integration", async () => {
       expect(await governanceToken.balanceOf(user2.address)).equal(0);
       expect(await governanceToken.balanceOf(reserve.address)).equal(0);
 
-      expect(await tokenMock.balanceOf(user1.address)).equal(e(INITIAL_USDC));
-      expect(await tokenMock.balanceOf(user2.address)).equal(e(INITIAL_USDC));
-      expect(await tokenMock.balanceOf(reserve.address)).equal(e(INITIAL_USDC));
+      expect(await usdc.balanceOf(user1.address)).equal(e(INITIAL_USDC));
+      expect(await usdc.balanceOf(user2.address)).equal(e(INITIAL_USDC));
+      expect(await usdc.balanceOf(reserve.address)).equal(e(INITIAL_USDC));
 
       let daysSinceMinting = 0;
       let tokensRedeemed = 0;
@@ -1324,13 +1313,11 @@ describe("Integration", async () => {
       expect(await governanceToken.balanceOf(user2.address)).equal(0);
       expect(await neokingdomToken.balanceOf(reserve.address)).equal(0); // they have all been burnt
 
-      expect(await tokenMock.balanceOf(user1.address)).equal(
+      expect(await usdc.balanceOf(user1.address)).equal(
         e(INITIAL_USDC + 10 + tokensRedeemed)
       );
-      expect(await tokenMock.balanceOf(user2.address)).equal(
-        e(INITIAL_USDC - 10)
-      );
-      expect(await tokenMock.balanceOf(reserve.address)).equal(
+      expect(await usdc.balanceOf(user2.address)).equal(e(INITIAL_USDC - 10));
+      expect(await usdc.balanceOf(reserve.address)).equal(
         e(INITIAL_USDC - tokensRedeemed)
       );
     });
@@ -1440,9 +1427,7 @@ describe("Integration", async () => {
         expect(await neokingdomToken.balanceOf(user1.address)).equal(
           e(user1ExternalBalance)
         );
-        expect(await tokenMock.balanceOf(user1.address)).equal(
-          e(user1UsdcBalance)
-        );
+        expect(await usdc.balanceOf(user1.address)).equal(e(user1UsdcBalance));
 
         // User2 balances
         expect(await governanceToken.balanceOf(user2.address)).equal(
@@ -1451,9 +1436,7 @@ describe("Integration", async () => {
         expect(await neokingdomToken.balanceOf(user2.address)).equal(
           e(user2ExternalBalance)
         );
-        expect(await tokenMock.balanceOf(user2.address)).equal(
-          e(user2UsdcBalance)
-        );
+        expect(await usdc.balanceOf(user2.address)).equal(e(user2UsdcBalance));
 
         // User3 balances
         expect(await governanceToken.balanceOf(user3.address)).equal(
@@ -1462,15 +1445,13 @@ describe("Integration", async () => {
         expect(await neokingdomToken.balanceOf(user3.address)).equal(
           e(user3ExternalBalance)
         );
-        expect(await tokenMock.balanceOf(user3.address)).equal(
-          e(user3UsdcBalance)
-        );
+        expect(await usdc.balanceOf(user3.address)).equal(e(user3UsdcBalance));
 
         // Reserve balances
         expect(await neokingdomToken.balanceOf(reserve.address)).equal(
           e(reserveExternalBalance)
         );
-        expect(await tokenMock.balanceOf(reserve.address)).equal(
+        expect(await usdc.balanceOf(reserve.address)).equal(
           e(reserveUsdcBalance)
         );
       }

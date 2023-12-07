@@ -7,8 +7,7 @@ import { ethers, network } from "hardhat";
 
 import { GovernanceToken, ShareholderRegistry, Voting } from "../typechain";
 
-import { DEPLOY_SEQUENCE, generateDeployContext } from "../lib";
-import { NeokingdomDAOMemory } from "../lib/environment/memory";
+import { setupDAO } from "./utils/setup";
 
 chai.use(solidity);
 chai.use(chaiAsPromised);
@@ -37,12 +36,8 @@ describe("Integration", async () => {
   before(async () => {
     [deployer, board, reserve, user1, user2, user3, free1, free2, free3] =
       await ethers.getSigners();
-    const neokingdom = await NeokingdomDAOMemory.initialize({
-      deployer,
-      reserve: reserve.address,
-    });
 
-    await neokingdom.run(generateDeployContext, DEPLOY_SEQUENCE);
+    const neokingdom = await setupDAO(deployer, reserve);
 
     ({ voting, governanceToken, shareholderRegistry } =
       await neokingdom.loadContracts());

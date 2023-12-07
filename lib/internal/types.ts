@@ -1,29 +1,24 @@
 import { TransactionResponse } from "@ethersproject/providers";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { Wallet } from "ethers";
-import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import {
   DAORoles,
   DAORoles__factory,
-  DIAOracleV2Mock,
-  DIAOracleV2Mock__factory,
+  DIAOracleV2__factory,
   GovernanceToken,
   GovernanceToken__factory,
+  IDIAOracleV2,
+  IERC20Mintable,
   InternalMarket,
   InternalMarket__factory,
   NeokingdomToken,
   NeokingdomToken__factory,
-  ProxyAdmin,
-  ProxyAdmin__factory,
   RedemptionController,
   RedemptionController__factory,
   ResolutionManager,
   ResolutionManager__factory,
   ShareholderRegistry,
   ShareholderRegistry__factory,
-  TokenMock,
-  TokenMock__factory,
+  USDC__factory,
   Voting,
   Voting__factory,
 } from "../../typechain";
@@ -37,10 +32,9 @@ export const FACTORIES = {
   RedemptionController: RedemptionController__factory,
   ResolutionManager: ResolutionManager__factory,
   ShareholderRegistry: ShareholderRegistry__factory,
-  TokenMock: TokenMock__factory,
+  USDC: USDC__factory,
   Voting: Voting__factory,
-  ProxyAdmin: ProxyAdmin__factory,
-  DIAOracleV2Mock: DIAOracleV2Mock__factory,
+  DIAOracleV2: DIAOracleV2__factory,
 } as const;
 
 export type ContractNames = keyof typeof FACTORIES;
@@ -49,11 +43,31 @@ export type Contributor = {
   name?: string;
   address: string;
   status: "contributor" | "board" | "investor";
-  tokens: string;
+  shareBalance: string;
+  balance?: string;
+  vestingBalance?: string;
+};
+
+export type Address = `0x${string}`;
+
+export type DAOConfig = {
+  testnet: boolean;
+  multisigAddress: Address;
+  tokenName: string;
+  tokenSymbol: string;
+  governanceTokenName: string;
+  governanceTokenSymbol: string;
+  shareTokenName: string;
+  shareTokenSymbol: string;
+  reserveAddress: Address;
+  usdcAddress: Address;
+  diaOracleAddress: Address;
+  shareCapital: string;
+  contributors: Contributor[];
 };
 
 export type ContextGenerator<T extends Context> = (
-  n: NeokingdomDAO
+  neokingdomDao: NeokingdomDAO
 ) => Promise<T>;
 
 export type NeokingdomContracts = {
@@ -64,21 +78,22 @@ export type NeokingdomContracts = {
   redemptionController: RedemptionController;
   resolutionManager: ResolutionManager;
   shareholderRegistry: ShareholderRegistry;
-  tokenMock: TokenMock;
+  usdc: IERC20Mintable;
   voting: Voting;
-  proxyAdmin: ProxyAdmin;
-  diaOracleV2Mock: DIAOracleV2Mock;
+  diaOracle: IDIAOracleV2;
 };
 
 export type Context = {};
 
 export type ContractContext = Context & NeokingdomContracts;
 
-export type Step<T extends Context> = (c: T) => Promise<TransactionResponse>;
+export type Step<T extends Context> = (
+  c: T
+) => Promise<TransactionResponse> | null;
 
 export type StepWithExpandable<T extends Context> =
   | ExpandableStep<T>
-  | ((c: T) => Promise<TransactionResponse>);
+  | ((c: T) => Promise<TransactionResponse> | null);
 
 export type ExpandableStep<T extends Context> = {
   expandableFunction: (c: T) => ProcessedSequence<T>;
@@ -86,7 +101,7 @@ export type ExpandableStep<T extends Context> = {
 
 export type Sequence<T extends Context> = StepWithExpandable<T>[];
 
-export type ProcessedSequence<T extends Context> = Step<T>[];
+export type ProcessedSequence<T extends Context> = (Step<T> | null)[];
 
 // FIXME: There Must Be A Better Way™ to do this in TypeScript
 export const CONTRACT_NAMES = [
@@ -97,10 +112,9 @@ export const CONTRACT_NAMES = [
   "redemptionController",
   "resolutionManager",
   "shareholderRegistry",
-  "tokenMock",
+  "usdc",
   "voting",
-  "proxyAdmin",
-  "diaOracleV2Mock",
+  "diaOracle",
 ];
 
 export function isNeokingdomContracts(
@@ -108,31 +122,9 @@ export function isNeokingdomContracts(
 ): n is NeokingdomContracts {
   for (let name of CONTRACT_NAMES) {
     if (!(name in n)) {
+      console.log("missing", name);
       return false;
     }
   }
   return true;
-}
-
-export type SetupContext = ContractContext & {
-  deployer: Wallet | SignerWithAddress;
-  contributors: Contributor[];
-  hre: HardhatRuntimeEnvironment;
-};
-
-export function generateSetupContext(
-  contributors: Contributor[],
-  hre: HardhatRuntimeEnvironment
-) {
-  async function _generateSetupContext(n: NeokingdomDAO) {
-    const contracts = (await n.loadContractsPartial()) as NeokingdomContracts;
-    const context: SetupContext = {
-      ...contracts,
-      contributors: contributors,
-      deployer: n.config.deployer,
-      hre: hre,
-    };
-    return context;
-  }
-  return _generateSetupContext;
 }

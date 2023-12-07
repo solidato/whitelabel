@@ -15,7 +15,10 @@ import {
 
 import { DEPLOY_SEQUENCE, generateDeployContext } from "../lib";
 import { NeokingdomDAOMemory } from "../lib/environment/memory";
+import { Address, DAOConfig } from "../lib/internal/types";
+import { SETUP_MOCK_SEQUENCE } from "../lib/sequence/deploy";
 import { timeTravel } from "./utils/evm";
+import { setupDAO } from "./utils/setup";
 
 chai.use(solidity);
 chai.use(chaiAsPromised);
@@ -43,12 +46,8 @@ describe("Integration", async () => {
   before(async () => {
     [deployer, reserve, board, contributor, investor, trader] =
       await ethers.getSigners();
-    const neokingdom = await NeokingdomDAOMemory.initialize({
-      deployer,
-      reserve: reserve.address,
-    });
 
-    await neokingdom.run(generateDeployContext, DEPLOY_SEQUENCE);
+    const neokingdom = await setupDAO(deployer, reserve);
 
     ({
       governanceToken,

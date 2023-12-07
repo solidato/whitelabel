@@ -22,7 +22,6 @@ export class NeokingdomDAOHardhat extends NeokingdomDAO {
     config: Partial<Config> = {}
   ) {
     const deployer = config.deployer ? config.deployer : await getWallet(hre);
-    const reserve = config.reserve ? config.reserve : deployer.address;
     const chainId = config.chainId
       ? config.chainId
       : (await hre.ethers.provider.getNetwork()).chainId;
@@ -31,7 +30,6 @@ export class NeokingdomDAOHardhat extends NeokingdomDAO {
       ...config,
       chainId,
       deployer,
-      reserve,
     });
 
     return new NeokingdomDAOHardhat(hre, newConfig);

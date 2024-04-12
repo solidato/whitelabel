@@ -38,6 +38,8 @@ Locate the assetlist file at `evmos/assetlist.json` and append the following obj
       "name": "<the name of the project, ex: Teledisko DAO>",
       "display": "<lower case token name, ex: berlin>",
       "symbol": "<upper case token name, ex: BERLIN>",
+      "address": "<the ERC20 0x-address that you submitted in the governance proposal>"
+      "type_asset": "erc20",
       "logo_URIs": {
         "png": "https://raw.githubusercontent.com/cosmos/chain-registry/master/evmos/images/<png logo file>",
         "svg": "https://raw.githubusercontent.com/cosmos/chain-registry/master/evmos/images/<svg logo file>"
@@ -139,7 +141,7 @@ Make sure you have an up-to-date version of the NeokingdomDAO fork of the chain 
 
 ```
 git clone git@github.com:NeokingdomDAO/chain-token-registry.git
-git remote add upstream https://github.com/osmosis-labs/assetlists.git
+git remote add upstream https://github.com/evmos/chain-token-registry.git
 git fetch upstream
 git rebase upstream/main
 ```

@@ -1,0 +1,42 @@
+{
+  "DAORoles": {
+    "address": "0xf6C3f93CD4C3Be68Dd061dA26B63E43EcdAf3e3C",
+    "blockNumber": 6077720,
+    "blockHash": "0xe81d580b30a6fb9dcde14d867f90e35489f1c8d53ea728c071c2ac2e20f92061"
+  },
+  "Voting": {
+    "address": "0xAb1BBaf95Ec342177e48d02c8722e0Fa3d1eaa98",
+    "blockNumber": 6077728,
+    "blockHash": "0x9a95e837d4a254c2e46bdf998c3f6439fb6faf420046bf692ce485aefdf6a9a0"
+  },
+  "GovernanceToken": {
+    "address": "0x0a068Ab22fEfB44395172be4d96a79465e0dd619",
+    "blockNumber": 6077739,
+    "blockHash": "0xdbf3469e377e9b36e81eb9dda34a985bdaeb84b49e1c7e87bf8c3dea2c20322d"
+  },
+  "NeokingdomToken": {
+    "address": "0x74b20ca1b01336D1cACcabFe434185edCce3949E",
+    "blockNumber": 6077746,
+    "blockHash": "0x28d3a2ee7061b0fade258589f1bd4bc3fd9c795117698e819d327de78f54fe67"
+  },
+  "RedemptionController": {
+    "address": "0xE62aba209051576968cDeB967f81b0D9A5d0E613",
+    "blockNumber": 6077753,
+    "blockHash": "0x9698f006595df23eb45ee831a01796ce4c6aaba2ac891e4b32fbb22fa13a3052"
+  },
+  "InternalMarket": {
+    "address": "0x31A1E7e971b571291E93A6a9CF1dD831aB2D273F",
+    "blockNumber": 6077760,
+    "blockHash": "0xf3a2b90f593b214901f2fae3639ea5d360117476b1c1b9695ccff847627ef753"
+  },
+  "ShareholderRegistry": {
+    "address": "0x54F060a174793b6bE5fCECb8ebFeA9C4B2ab05Bb",
+    "blockNumber": 6077768,
+    "blockHash": "0xcff42620859e07df992ff9bbc5f0a09814bdb4b24862a818bedf82591a745e26"
+  },
+  "ResolutionManager": {
+    "address": "0xb8363748aAc6DdCDfD4aE5Afe893Ee4c408888a2",
+    "blockNumber": 6077776,
+    "blockHash": "0x996565d565fca762870816a749ccd8b8a952fe03b03a50165bc0f593909a0290"
+  }
+}

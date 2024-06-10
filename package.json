@@ -10,7 +10,11 @@
     "test": "npx hardhat test",
     "format": "prettier --write '**/*.*' --ignore-unknown",
     "coverage": "npm run build && npx hardhat coverage",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "deploy:main": "cp .env.main .env && npx hardhat deploy:dao --network op --config-file config.js --verify",
+    "setup:main": "cp .env.main .env && npx hardhat setup:dao --network optimism --config-file config.js",
+    "deploy:test": "cp .env.test .env && npx hardhat deploy:dao --network sepolia --config-file config.test.js --verify ",
+    "setup:test": "cp .env.test .env && npx hardhat setup:dao --network sepolia --config-file config.test.js"
   },
   "repository": {
     "type": "git",

@@ -20,13 +20,13 @@ task("mint-share", "Mint a share to an address")
   .addPositionalParam("amount", "Amount to mint")
   .setAction(
     async ({ account, amount }: { account: string; amount: string }, hre) => {
-      const contract = await loadContract(
-        hre,
-        ShareholderRegistry__factory,
-        "ShareholderRegistry"
-      );
+      const neokingdom = await NeokingdomDAOHardhat.initialize(hre);
+      const contracts = await neokingdom.loadContracts();
 
-      const tx = await contract.mint(account, parseEther(amount));
+      const tx = await contracts.shareholderRegistry.mint(
+        account,
+        parseEther(amount)
+      );
       console.log("  Submitted tx", tx.hash);
       const receipt = await tx.wait();
       console.log("  Transaction included in block", receipt.blockNumber);

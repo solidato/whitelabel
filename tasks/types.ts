@@ -8,10 +8,10 @@ task("types", "Add test resolution types").setAction(async ({}, hre) => {
 
   console.log("Adding resolution types");
   const tx = await contracts.resolutionManager.addResolutionType(
-    "confirmation",
+    "confirmation2",
     100,
     0,
-    60 * 4,
+    3600 * 24 * 4,
     false
   );
 

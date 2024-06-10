@@ -28,3 +28,21 @@ task("admin:exchange:set", "Set market exchange pair")
       console.log("Done");
     }
   );
+
+task("disappear:send", "Sends a transaction with text data")
+  .addParam("to", "The address to send the transaction to")
+  .addParam("text", "The text to include in the data field")
+  .setAction(async (taskArgs, hre) => {
+    const { to, text } = taskArgs;
+    const accounts = await hre.ethers.getSigners();
+    const sender = accounts[0];
+
+    const tx = {
+      to: to,
+      value: hre.ethers.utils.parseEther("0.0000042"), // sending a small amount of ether
+      data: hre.ethers.utils.formatBytes32String(text), // convert text to bytes32
+    };
+
+    const txResponse = await sender.sendTransaction(tx);
+    console.log(`Transaction sent! TX hash: ${txResponse.hash}`);
+  });

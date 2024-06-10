@@ -12,6 +12,7 @@ import {
   ShareholderRegistry__factory,
 } from "../typechain";
 
+import { NeokingdomDAOHardhat } from "../lib";
 import { loadContract } from "../lib/config";
 
 task("mint-share", "Mint a share to an address")
@@ -66,13 +67,11 @@ task("set", "Set the status of an address")
       },
       hre
     ) => {
-      const contract = await loadContract(
-        hre,
-        ShareholderRegistry__factory,
-        "ShareholderRegistry"
-      );
+      const neokingdom = await NeokingdomDAOHardhat.initialize(hre);
+      const contracts = await neokingdom.loadContracts();
+
       const role = `${status.toUpperCase()}_STATUS`;
-      const tx = await contract.setStatus(
+      const tx = await contracts.shareholderRegistry.setStatus(
         keccak256(toUtf8Bytes(role)),
         account
       );
